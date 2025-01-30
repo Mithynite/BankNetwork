@@ -1,6 +1,9 @@
 package bank.com.server;
 
+import bank.com.core.EntityManager;
+import bank.com.service.AccountService;
 import bank.com.service.ClientHandler;
+import bank.com.service.TransactionService;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -12,10 +15,14 @@ import java.util.concurrent.Executors;
 public class ServerManager {
     private final int port;
     private final ExecutorService threadPool;
+    private AccountService accountService;
+    private TransactionService transactionService;
 
-    public ServerManager(int port, int threadPoolSize) {
+    public ServerManager(int port, int threadPoolSize, AccountService accountService, TransactionService transactionService) {
         this.port = port;
         this.threadPool = Executors.newFixedThreadPool(threadPoolSize);
+        this.accountService = accountService;
+        this.transactionService = transactionService;
     }
 
     /**
@@ -36,12 +43,12 @@ public class ServerManager {
 
                 while (true) {
                     Socket clientSocket = serverSocket.accept();
-                    System.out.println("New client connected: " + clientSocket.getInetAddress());
+                    System.out.println("New client connected: " + clientSocket.toString());
 
                     // Directly handle the client with a new ClientHandler
                     threadPool.execute(() -> {
                         try {
-                            new ClientHandler(clientSocket).handleClient();
+                            new ClientHandler(clientSocket, accountService, transactionService, localAddress.getHostAddress()).handleClient();
                         } catch (Exception e) {
                             System.err.println("Error handling client: " + e.getMessage());
                         }

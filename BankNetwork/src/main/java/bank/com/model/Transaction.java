@@ -31,8 +31,7 @@ public class Transaction {
     public Transaction() {
     }
 
-    public Transaction(int transactionId, int accountNumber, String bankCode, String transactionType, long amount, String timestamp) {
-        this.transactionId = transactionId;
+    public Transaction(int accountNumber, String bankCode, String transactionType, long amount, String timestamp) {
         this.accountNumber = accountNumber;
         this.bankCode = bankCode;
         this.transactionType = transactionType;

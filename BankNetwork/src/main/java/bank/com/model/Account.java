@@ -22,8 +22,7 @@ public class Account {
     @OneToMany(mappedBy = "accountNumber")
     private List<Transaction> transactions; // All transactions belonging to this account
 
-    public Account(int accountId, int accountNumber, long balance) {
-        this.accountId = accountId;
+    public Account(int accountNumber, long balance) {
         this.accountNumber = accountNumber;
         this.balance = balance;
     }
@@ -54,5 +53,20 @@ public class Account {
 
     public void setBalance(long balance) {
         this.balance = balance;
+    }
+    public void deposit(long amount) {
+        this.balance += amount;
+    }
+    public void withdraw(long amount) {
+        if (this.balance >= amount) {
+            this.balance -= amount;
+        } else {
+            throw new IllegalArgumentException("Insufficient funds");
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "Account: number=" + accountNumber + ", balance=" + balance;
     }
 }

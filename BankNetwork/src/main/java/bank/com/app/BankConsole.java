@@ -1,151 +1,201 @@
 package bank.com.app;
 
 import bank.com.Command;
+import bank.com.model.Account;
+import bank.com.model.Transaction;
+import bank.com.service.AccountService;
+import bank.com.service.TransactionService;
 
 import java.io.BufferedReader;
 import java.io.PrintWriter;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class BankConsole {
     private final PrintWriter writer;
     private final BufferedReader reader;
+    private final AccountService accountService;
+    private final TransactionService transactionService;
+    private final String bankCode;
+    private final List<Command> commands = new ArrayList<>();
     private final Map<String, Command> commandMap = new HashMap<>();
 
-    /**
-     * Constructor to initialize the commands.
-     */
-    public BankConsole(PrintWriter writer, BufferedReader reader) {
+    public BankConsole(PrintWriter writer, BufferedReader reader, AccountService accountService, TransactionService transactionService, String bankCode) {
         this.writer = writer;
         this.reader = reader;
-        initializeCommands();
+        this.accountService = accountService;
+        this.transactionService = transactionService;
+        this.bankCode = bankCode;
+        registerCommands();
     }
 
-    /**
-     * Initialize the commands and register them into the `commandMap`.
-     */
-    private void initializeCommands() {
-        try {
-            // Dynamically register all commands and their implementations
-            registerCommand("AC", this.getClass().getDeclaredMethod("createAccount", Scanner.class));
-            registerCommand("AD", this.getClass().getDeclaredMethod("deleteAccount", Scanner.class));
-            registerCommand("DP", this.getClass().getDeclaredMethod("deposit", Scanner.class));
-            registerCommand("WD", this.getClass().getDeclaredMethod("withdraw", Scanner.class));
-            registerCommand("BA", this.getClass().getDeclaredMethod("balanceInquiry", Scanner.class));
-            registerCommand("TL", this.getClass().getDeclaredMethod("transactionLog", Scanner.class));
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Failed to register commands", e);
-        }
+    private void registerCommands() {
+        addCommand(new Command("AC", this::createAccount));
+        addCommand(new Command("AR", this::removeAccount));
+        addCommand(new Command("AD", this::deposit));
+        addCommand(new Command("AW", this::withdraw));
+        addCommand(new Command("AB", this::getBalance));
+        addCommand(new Command("BN", this::getBankNumberOfClients));
+        addCommand(new Command("BC", this::getBankCode));
+        addCommand(new Command("BA", this::getTotalBankAmount));
+        addCommand(new Command("AL", this::listAllAccounts));
     }
 
-    /**
-     * Register a command into the command map.
-     *
-     * @param code   The command key.
-     * @param method The method to be executed for this command.
-     */
-    private void registerCommand(String code, Method method) {
-        commandMap.put(code, new Command(code, method, this));
+    private void addCommand(Command command) {
+        commands.add(command);
+        commandMap.put(command.getCode(), command);
     }
 
-    /**
-     * Start the command interaction loop.
-     */
-    public void start() {
-        writer.println("Welcome to the Bank Console!");
-        Scanner scanner = new Scanner(reader); // Use the `reader` to interact with a client
-
+    public void start() throws Exception {
+        Scanner scanner = new Scanner(reader);
         while (true) {
-            writer.print("\nEnter command: ");
-            writer.flush(); // Ensure output is sent to the client
-            String commandKey = scanner.nextLine().trim().toUpperCase();
+            writer.flush();
+            String input = scanner.nextLine().trim().toUpperCase();
 
-            Command command = commandMap.get(commandKey);
-
-            if (command != null) {
-                try {
-                    command.execute(scanner); // Execute the command with the current scanner
-                } catch (Exception e) {
-                    writer.println("Error executing command: " + e.getMessage());
-                }
-            } else if ("EXIT".equals(commandKey)) {
+            if ("EXIT".equals(input)) {
                 writer.println("Goodbye!");
                 break;
-            } else {
-                writer.println("Invalid command! Try again.");
             }
+
+            executeCommand(input.split(" "));
         }
     }
 
-    // Command implementations
-    public void createAccount(Scanner scanner) {
-        writer.print("Enter account number: ");
-        writer.flush();
-        int accountNumber = scanner.nextInt();
-        writer.print("Enter initial balance: ");
-        writer.flush();
-        long initialBalance = scanner.nextLong();
-        scanner.nextLine(); // Consume the newline character
+    private void executeCommand(String[] args) throws Exception {
+        if (args.length == 0) {
+            writer.println("ER Neplatný příkaz.");
+            return;
+        }
 
-        // TODO: Add logic to create an account
-        writer.println("Account created: " + accountNumber);
+        Command command = commandMap.get(args[0]);
+        if (command != null) {
+            command.execute(args);
+        } else {
+            writer.println("ER Neznámý příkaz.");
+        }
     }
 
-    public void deleteAccount(Scanner scanner) {
-        writer.print("Enter account number to delete: ");
-        writer.flush();
-        int accountNumber = scanner.nextInt();
-        scanner.nextLine(); // Consume newline
-
-        // TODO: Add logic to delete an account
-        writer.println("Account deleted: " + accountNumber);
+    private void getBankCode(String[] args) {
+        writer.println("BC " + bankCode);
     }
 
-    public void deposit(Scanner scanner) {
-        writer.print("Enter account number: ");
-        writer.flush();
-        int accountNumber = scanner.nextInt();
-        writer.print("Enter deposit amount: ");
-        writer.flush();
-        long amount = scanner.nextLong();
-        scanner.nextLine(); // Consume newline
-
-        // TODO: Add logic to deposit money
-        writer.println("Deposit successful.");
+    private void createAccount(String[] args) throws Exception {
+        int accountNumber = generateAccountNumber();
+        Account account = new Account(accountNumber, 0);
+        accountService.createAccount(account);
+        writer.println("AC " + accountNumber + "/" + bankCode);
     }
 
-    public void withdraw(Scanner scanner) {
-        writer.print("Enter account number: ");
-        writer.flush();
-        int accountNumber = scanner.nextInt();
-        writer.print("Enter withdrawal amount: ");
-        writer.flush();
-        long amount = scanner.nextLong();
-        scanner.nextLine(); // Consume newline
+    private void getBalance(String[] args) throws Exception {
+        if (args.length != 2) {
+            writer.println("ER Formát čísla účtu není správný.");
+            return;
+        }
 
-        // TODO: Add logic to withdraw money
-        writer.println("Withdrawal successful.");
+        Account account = findAccountByFormattedNumber(args[1]);
+        if (account == null) {
+            writer.println("ER Bankovní účet neexistuje.");
+            return;
+        }
+
+        writer.println("AB " + account.getBalance());
     }
 
-    public void balanceInquiry(Scanner scanner) {
-        writer.print("Enter account number: ");
-        writer.flush();
-        int accountNumber = scanner.nextInt();
-        scanner.nextLine(); // Consume newline
+    private void deposit(String[] args) throws Exception {
+        if (args.length != 3) {
+            writer.println("ER číslo bankovního účtu a částka není ve správném formátu.");
+            return;
+        }
 
-        // TODO: Add logic for balance inquiry
-        writer.println("Account balance: 1000");
+        Account account = findAccountByFormattedNumber(args[1]);
+        if (account == null) {
+            writer.println("ER Bankovní účet neexistuje.");
+            return;
+        }
+
+        long amount = parseAmount(args[2]);
+        account.deposit(amount);
+        accountService.updateAccount(account);
+        writer.println("AD");
     }
 
-    public void transactionLog(Scanner scanner) {
-        writer.print("Enter account number to view transactions: ");
-        writer.flush();
-        int accountNumber = scanner.nextInt();
-        scanner.nextLine(); // Consume newline
+    private void withdraw(String[] args) throws Exception {
+        if (args.length != 3) {
+            writer.println("ER číslo bankovního účtu a částka není ve správném formátu.");
+            return;
+        }
 
-        // TODO: Add logic to fetch the transaction log
-        writer.println("Transaction log: ...");
+        Account account = findAccountByFormattedNumber(args[1]);
+        if (account == null) {
+            writer.println("ER Bankovní účet neexistuje.");
+            return;
+        }
+
+        long amount = parseAmount(args[2]);
+        if (account.getBalance() < amount) {
+            writer.println("ER Není dostatek finančních prostředků.");
+            return;
+        }
+
+        account.withdraw(amount);
+        accountService.updateAccount(account);
+        writer.println("AW");
+    }
+
+    private void removeAccount(String[] args) throws Exception {
+        if (args.length != 2) {
+            writer.println("ER Formát čísla účtu není správný.");
+            return;
+        }
+
+        Account account = findAccountByFormattedNumber(args[1]);
+        if (account == null) {
+            writer.println("ER Bankovní účet neexistuje.");
+            return;
+        }
+
+        if (account.getBalance() != 0) {
+            writer.println("ER Nelze smazat bankovní účet na kterém jsou finance.");
+            return;
+        }
+
+        accountService.removeAccount(account.getAccountId());
+        writer.println("AR");
+    }
+
+    private void getTotalBankAmount(String[] args) throws Exception {
+        List<Account> accounts = accountService.getAllAccounts();
+        long totalAmount = accounts.stream().mapToLong(Account::getBalance).sum();
+        writer.println("BA " + totalAmount);
+    }
+
+    private void getBankNumberOfClients(String[] args) throws Exception {
+        List<Account> accounts = accountService.getAllAccounts();
+        writer.println("BN " + accounts.size());
+    }
+
+    private void listAllAccounts(String[] args) throws Exception {
+        List<Account> accounts = accountService.getAllAccounts();
+        writer.println("AL");
+        for (Account account : accounts) {
+            writer.println(account);
+        }
+    }
+
+    private Account findAccountByFormattedNumber(String accountInfo) throws Exception {
+        String[] parts = accountInfo.split("/");
+        if (parts.length != 2 || !parts[1].equals(bankCode)) {
+            return null;
+        }
+
+        int accountNumber = Integer.parseInt(parts[0]);
+        return accountService.findAccountByNumber(accountNumber);
+    }
+
+    private int generateAccountNumber() {
+        return (int) (Math.random() * 90000) + 10000;
+    }
+
+    private long parseAmount(String amountStr) {
+        return Long.parseLong(amountStr);
     }
 }
