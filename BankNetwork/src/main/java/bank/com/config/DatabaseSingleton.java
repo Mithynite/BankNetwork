@@ -35,16 +35,9 @@ public class DatabaseSingleton {
     public static Connection getInstance() {
         if (connection == null) {
             try {
-                // Load database properties from the config file
-                Properties dbProperties = loadDatabaseProperties();
-
-                String url = dbProperties.getProperty("db.url");
-                String username = dbProperties.getProperty("db.username");
-                String password = dbProperties.getProperty("db.password");
-
                 // Establish the MySQL connection
-                connection = DriverManager.getConnection(url, username, password);
-            } catch (SQLException | IOException e) {
+                connection = DriverManager.getConnection(ConfigManager.dbUrl, ConfigManager.dbUser, ConfigManager.dbPassword);
+            } catch (SQLException e) {
                 throw new RuntimeException("Error while establishing the database connection: " + e.getMessage(), e);
             }
         }
@@ -66,29 +59,6 @@ public class DatabaseSingleton {
                 throw new RuntimeException("Error while closing the database connection: " + e.getMessage(), e);
             }
         }
-    }
-
-    /**
-     * Loads the database properties from the config file.
-     *
-     * @return The loaded database properties.
-     * @throws IOException If the database configuration file is not found.
-     */
-    private static Properties loadDatabaseProperties() throws IOException {
-        Properties properties = new Properties();
-
-        try (InputStream input = DatabaseSingleton.class
-                .getClassLoader()
-                .getResourceAsStream("config.properties")) {
-
-            if (input == null) {
-                throw new IOException("Database configuration file 'config.properties' not found.");
-            }
-
-            properties.load(input);
-        }
-
-        return properties;
     }
 }
 

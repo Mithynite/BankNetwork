@@ -2,6 +2,8 @@ package bank.com.model;
 
 import bank.com.annotations.*;
 
+import java.util.Date;
+
 @Table(name = "transactions") // Table annotation for the "transactions" table
 public class Transaction {
 
@@ -17,13 +19,13 @@ public class Transaction {
     private String bankCode;
 
     @Column(name = "transaction_type", canBeNull = false) // ENUM type ('create', 'remove', etc.)
-    private String transactionType;
+    private TransactionType transactionType;
 
     @Column(name = "amount") // Transaction amount
     private long amount;
 
     @Column(name = "timestamp") // Timestamp of the transaction
-    private String timestamp;
+    private Date timestamp;
 
     @Transient // Not persisted, for runtime use only
     private Account account;
@@ -31,11 +33,18 @@ public class Transaction {
     public Transaction() {
     }
 
-    public Transaction(int accountNumber, String bankCode, String transactionType, long amount, String timestamp) {
+    public Transaction(int accountNumber, String bankCode, TransactionType transactionType, long amount, Date timestamp) {
         this.accountNumber = accountNumber;
         this.bankCode = bankCode;
         this.transactionType = transactionType;
         this.amount = amount;
+        this.timestamp = timestamp;
+    }
+    public Transaction(int accountNumber, String bankCode, TransactionType transactionType, Date timestamp) {
+        this.accountNumber = accountNumber;
+        this.bankCode = bankCode;
+        this.transactionType = transactionType;
+        this.amount = 0;
         this.timestamp = timestamp;
     }
 
@@ -64,11 +73,11 @@ public class Transaction {
         this.bankCode = bankCode;
     }
 
-    public String getTransactionType() {
+    public TransactionType getTransactionType() {
         return transactionType;
     }
 
-    public void setTransactionType(String transactionType) {
+    public void setTransactionType(TransactionType transactionType) {
         this.transactionType = transactionType;
     }
 
@@ -80,11 +89,11 @@ public class Transaction {
         this.amount = amount;
     }
 
-    public String getTimestamp() {
+    public Date getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(String timestamp) {
+    public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
     }
 }

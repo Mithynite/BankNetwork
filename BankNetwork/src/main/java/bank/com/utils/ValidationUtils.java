@@ -89,6 +89,11 @@ public class ValidationUtils {
             throw new IllegalArgumentException(floatFieldName + " must be a positive number!");
         }
     }
+    public static void validateInRange(float numberInput, int min, int max) {
+        if (numberInput < min || numberInput > max) {
+            throw new IllegalArgumentException("Input must be between " + min + " and " + max + "!");
+        }
+    }
 
     /**
      * Validates a boolean input (true/false). Throws an exception if invalid.

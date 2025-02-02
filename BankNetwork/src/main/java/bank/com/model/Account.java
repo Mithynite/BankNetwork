@@ -18,10 +18,6 @@ public class Account {
     @Column(name = "balance", canBeNull = false) // Column in table
     private long balance;
 
-    // One-to-Many relationship with Transaction
-    @OneToMany(mappedBy = "accountNumber")
-    private List<Transaction> transactions; // All transactions belonging to this account
-
     public Account(int accountNumber, long balance) {
         this.accountNumber = accountNumber;
         this.balance = balance;

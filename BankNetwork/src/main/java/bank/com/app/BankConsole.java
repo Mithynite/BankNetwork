@@ -3,6 +3,7 @@ package bank.com.app;
 import bank.com.Command;
 import bank.com.model.Account;
 import bank.com.model.Transaction;
+import bank.com.model.TransactionType;
 import bank.com.service.AccountService;
 import bank.com.service.TransactionService;
 
@@ -83,6 +84,11 @@ public class BankConsole {
         Account account = new Account(accountNumber, 0);
         accountService.createAccount(account);
         writer.println("AC " + accountNumber + "/" + bankCode);
+        transactionService.createTransaction(new Transaction(
+                accountNumber,
+                bankCode,
+                TransactionType.create,
+                new Date()));
     }
 
     private void getBalance(String[] args) throws Exception {
@@ -116,6 +122,13 @@ public class BankConsole {
         account.deposit(amount);
         accountService.updateAccount(account);
         writer.println("AD");
+        transactionService.createTransaction(new Transaction(
+                account.getAccountNumber(),
+                bankCode,
+                TransactionType.deposit,
+                amount,
+                new Date()));
+
     }
 
     private void withdraw(String[] args) throws Exception {
@@ -139,6 +152,12 @@ public class BankConsole {
         account.withdraw(amount);
         accountService.updateAccount(account);
         writer.println("AW");
+        transactionService.createTransaction(new Transaction(
+                account.getAccountNumber(),
+                bankCode,
+                TransactionType.withdrawal,
+                amount,
+                new Date()));
     }
 
     private void removeAccount(String[] args) throws Exception {
@@ -157,9 +176,13 @@ public class BankConsole {
             writer.println("ER Nelze smazat bankovní účet na kterém jsou finance.");
             return;
         }
-
-        accountService.removeAccount(account.getAccountId());
         writer.println("AR");
+        accountService.removeAccount(account.getAccountId());
+        transactionService.createTransaction(new Transaction(
+                account.getAccountNumber(),
+                bankCode,
+                TransactionType.remove,
+                new Date()));
     }
 
     private void getTotalBankAmount(String[] args) throws Exception {
