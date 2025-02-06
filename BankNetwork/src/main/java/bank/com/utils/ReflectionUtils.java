@@ -14,6 +14,7 @@ import java.util.List;
 /**
  * Maps an object's fields and annotations (e.g., @Column) to database tables.
  * Also handles mapping Enums between database values and Java Enum types.
+ * @author Jakub Hofman
  */
 public class ReflectionUtils {
 

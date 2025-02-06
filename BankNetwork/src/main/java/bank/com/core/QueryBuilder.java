@@ -11,6 +11,7 @@ import java.util.StringJoiner;
 
 /***
  * Dynamically generates SQL queries.
+ * @author Jakub Hofman
  */
 public class QueryBuilder {
 

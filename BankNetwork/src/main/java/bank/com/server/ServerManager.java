@@ -1,8 +1,6 @@
 package bank.com.server;
 
-import bank.com.core.EntityManager;
 import bank.com.service.AccountService;
-import bank.com.service.ClientHandler;
 import bank.com.service.TransactionService;
 
 import java.io.IOException;
@@ -12,14 +10,20 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * This class manages all connections to the server and creates ClientHandler(s) for each of them. Also maintains thread pool.
+ * @author Jakub Hofman
+ */
 public class ServerManager {
     private final int port;
+    private final int backlogSize;
     private final ExecutorService threadPool;
-    private AccountService accountService;
-    private TransactionService transactionService;
+    private final AccountService accountService;
+    private final TransactionService transactionService;
 
-    public ServerManager(int port, int threadPoolSize, AccountService accountService, TransactionService transactionService) {
+    public ServerManager(int port, int backlogSize,int threadPoolSize, AccountService accountService, TransactionService transactionService) {
         this.port = port;
+        this.backlogSize = backlogSize;
         this.threadPool = Executors.newFixedThreadPool(threadPoolSize);
         this.accountService = accountService;
         this.transactionService = transactionService;
@@ -38,21 +42,15 @@ public class ServerManager {
                 return;
             }
 
-            try (ServerSocket serverSocket = new ServerSocket(port, 50, localAddress)) {
+            try (ServerSocket serverSocket = new ServerSocket(port, backlogSize, localAddress)) {
                 System.out.println("Server started. Listening on IP: " + localAddress.getHostAddress() + ", Port: " + port);
 
                 while (true) {
                     Socket clientSocket = serverSocket.accept();
                     System.out.println("New client connected: " + clientSocket.toString());
 
-                    // Directly handle the client with a new ClientHandler
-                    threadPool.execute(() -> {
-                        try {
-                            new ClientHandler(clientSocket, accountService, transactionService, localAddress.getHostAddress()).handleClient();
-                        } catch (Exception e) {
-                            System.err.println("Error handling client: " + e.getMessage());
-                        }
-                    });
+                    // Execute ClientHandler directly as a Runnable
+                    threadPool.execute(new ClientHandler(clientSocket, accountService, transactionService, localAddress.getHostAddress()));
                 }
             }
         } catch (IOException e) {
@@ -72,19 +70,17 @@ public class ServerManager {
      * Gets the local LAN IP address of the machine.
      *
      * @return The LAN IP address or null if it cannot be determined.
-     * @throws IOException If there's an error retrieving the LAN IP address.
      */
-    private InetAddress getLocalIpAddress() throws IOException {
-        InetAddress localAddress = null;
-
-        // Attempt to get the LAN IP address (skipping localhost)
-        for (InetAddress address : InetAddress.getAllByName(InetAddress.getLocalHost().getHostName())) {
-            if (address.isSiteLocalAddress()) {
-                localAddress = address;
-                break;
+    private InetAddress getLocalIpAddress() {
+        try {
+            for (InetAddress address : InetAddress.getAllByName(InetAddress.getLocalHost().getHostName())) {
+                if (address.isSiteLocalAddress()) {
+                    return address;
+                }
             }
+        } catch (IOException e) {
+            System.err.println("Error retrieving LAN IP address: " + e.getMessage());
         }
-
-        return localAddress;
+        return null;
     }
 }

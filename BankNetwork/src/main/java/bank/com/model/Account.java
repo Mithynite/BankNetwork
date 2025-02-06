@@ -2,8 +2,10 @@ package bank.com.model;
 
 import bank.com.annotations.*;
 
-import java.util.List;
-
+/**
+ * Class representing the account from the bank.
+ * @author Jakub Hofman
+*/
 @Table(name = "accounts") // Table annotation for the "accounts" table
 public class Account {
 

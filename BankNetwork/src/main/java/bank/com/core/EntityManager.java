@@ -11,6 +11,7 @@ import java.util.List;
 
 /**
  * Manages database interactions and handles transactions for CRUD operations.
+ * @author Jakub Hofman
  */
 public class EntityManager {
     private final Connection connection;

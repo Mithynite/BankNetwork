@@ -1,15 +1,13 @@
 package bank.com.config;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Properties;
 
 /**
  * A singleton class that manages a single database connection.
  * It provides methods to establish and close the connection.
+ * @author Jakub Hofman
  */
 public class DatabaseSingleton {
 

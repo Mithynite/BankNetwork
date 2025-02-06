@@ -4,6 +4,10 @@ import bank.com.annotations.*;
 
 import java.util.Date;
 
+/**
+ * Class representing the transaction that has been processes in the bank.
+ * @author Jakub Hofman
+ */
 @Table(name = "transactions") // Table annotation for the "transactions" table
 public class Transaction {
 
