@@ -60,11 +60,11 @@ public class AccountWithdrawCommand extends RemoteCommand {
 
         Account account = accountService.findAccountByNumber(accountNumber);
         if (account == null) {
-            writer.println("ER Bankovní účet neexistuje.");
+            writer.println("ER Bank account does not exist!");
             return;
         }
         if (account.getBalance() < amount) {
-            writer.println("ER Není dostatek finančních prostředků.");
+            writer.println("ER Not enough funds!");
             return;
         }
 

@@ -24,7 +24,7 @@ public class TotalBankAmountCommand implements Command {
             long totalAmount = accountService.getAllAccounts().stream().mapToLong(a -> a.getBalance()).sum();
             writer.println("BA " + totalAmount);
         } catch (Exception e) {
-            writer.println("ER Chyba při získávání celkové částky: " + e.getMessage());
+            writer.println("ER Failed to get total bank money amount!");
         }
     }
 }

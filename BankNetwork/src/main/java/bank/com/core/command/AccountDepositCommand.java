@@ -57,7 +57,7 @@ public class AccountDepositCommand extends RemoteCommand {
 
         Account account = accountService.findAccountByNumber(accountNumber);
         if (account == null) {
-            writer.println("ER Bankovní účet neexistuje.");
+            writer.println("ER Bank account does not exist!");
             return;
         }
 

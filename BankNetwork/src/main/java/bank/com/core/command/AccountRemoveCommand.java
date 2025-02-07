@@ -43,19 +43,19 @@ public class AccountRemoveCommand implements Command {
     @Override
     public void execute(String[] args) {
         if (args.length != 2) {
-            writer.println("ER Formát čísla účtu není správný.");
+            writer.println("ER The format of the account number is not correct!");
             return;
         }
 
         try {
             Account account = findAccountByFormattedNumber(args[1]);
             if (account == null) {
-                writer.println("ER Bankovní účet neexistuje.");
+                writer.println("ER Bank account does not exist!");
                 return;
             }
 
             if (account.getBalance() != 0) {
-                writer.println("ER Nelze smazat bankovní účet na kterém jsou finance.");
+                writer.println("ER You cannot delete an account which contains money!");
                 return;
             }
 
@@ -64,7 +64,7 @@ public class AccountRemoveCommand implements Command {
             transactionService.createTransaction(new Transaction(
                     account.getAccountNumber(), bankCode, TransactionType.remove, new Date()));
         } catch (Exception e) {
-            writer.println("ER Chyba při mazání účtu!");
+            writer.println("ER Error during account removal!");
         }
     }
 
@@ -84,7 +84,7 @@ public class AccountRemoveCommand implements Command {
             int accountNumber = Integer.parseInt(parts[0]);
             return accountService.findAccountByNumber(accountNumber);
         } catch (Exception e) {
-            writer.println("ER Neplatné číslo účtu.");
+            writer.println("ER Invalid account number!");
             return null;
         }
     }

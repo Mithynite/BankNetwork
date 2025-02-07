@@ -50,7 +50,7 @@ public class AccountBalanceCommand extends RemoteCommand {
 
         Account account = accountService.findAccountByNumber(accountNumber);
         if (account == null) {
-            writer.println("ER Bankovní účet neexistuje.");
+            writer.println("ER The Bank account does not exist!");
             return;
         }
 

@@ -24,8 +24,6 @@ public class ConfigManager {
 
     public static int clientTimeout;
 
-    public static int scanTimeout;
-
     public static int connectTimeout;
 
     public static int commandTimeout;
@@ -55,7 +53,6 @@ public class ConfigManager {
         dbUser = props.getProperty("db.username");
         dbPassword = props.getProperty("db.password");
         clientTimeout = Integer.parseInt(props.getProperty("server.client.timeout"));
-        scanTimeout = Integer.parseInt(props.getProperty("server.client.scan.timeout"));
         connectTimeout = Integer.parseInt(props.getProperty("server.client.connect.timeout"));
         commandTimeout = Integer.parseInt(props.getProperty("client.command.timeout"));
 

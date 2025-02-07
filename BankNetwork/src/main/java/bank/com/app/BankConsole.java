@@ -96,13 +96,13 @@ public class BankConsole {
      */
     private void executeCommand(String[] args) {
         if (args.length == 0) {
-            writer.println("ER Neplatný příkaz.");
+            writer.println("ER Invalid command!");
             return;
         }
 
         Command command = commandMap.get(args[0]);
         if (command == null) {
-            writer.println("ER Neznámý příkaz.");
+            writer.println("ER Invalid command!");
             return;
         }
 
@@ -110,7 +110,7 @@ public class BankConsole {
             try {
                 command.execute(args);
             } catch (Exception e) {
-                writer.println("ER Chyba při vykonání příkazu!");
+                writer.println("ER Something went wrong while executing the command!");
             }
         });
 
@@ -120,10 +120,10 @@ public class BankConsole {
             commandThread.join(COMMAND_TIMEOUT);
             if (commandThread.isAlive()) {
                 commandThread.interrupt(); // Stop the thread if still running
-                writer.println("ER Příkaz trval příliš dlouho, zkuste to znovu.");
+                writer.println("ER Command took too long to execute, sorry!");
             }
         } catch (InterruptedException e) {
-            writer.println("ER Neznámá/Neočekávaná chyba: " + e.getMessage());
+            writer.println("ER Unexpected error occurred: " + e.getMessage());
         }
     }
 }

@@ -2,11 +2,14 @@ package bank.com.core.command;
 
 import bank.com.service.AccountService;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * This class represents a remote command that interacts with a remote bank.
@@ -47,13 +50,13 @@ public class RemoteCommand implements Command {
      */
     protected String[] splitBankAccountArguments(String[] args, int expectedLength) {
         if (args.length != expectedLength) {
-            writer.println("ER Formát čísla účtu není správný.");
+            writer.println("ER The format of the account number is not correct!");
             return null;
         }
 
         String[] parts = args[1].split("/");
         if (parts.length != 2) {
-            writer.println("ER Neplatný formát účtu.");
+            writer.println("ER The format of the account is not correct!");
             return null;
         }
 
@@ -70,12 +73,12 @@ public class RemoteCommand implements Command {
         try {
             long amount = Long.parseLong(amountStr);
             if (amount <= 0) {
-                writer.println("ER Částka musí být větší než 0.");
+                writer.println("ER The amount must be greater than 0!");
                 return null;
             }
             return amount;
         } catch (NumberFormatException e) {
-            writer.println("ER Neplatná částka.");
+            writer.println("ER Invalid amount!");
             return null;
         }
     }
@@ -88,18 +91,45 @@ public class RemoteCommand implements Command {
      * @return the response from the remote bank, or an error message if the connection fails
      */
     protected String forwardRequestToRemoteBank(String remoteBankCode, String command) {
-        for (int port = portStart; port <= portEnd; port++) {
-            try (Socket socket = new Socket(remoteBankCode, port);
-                 PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
-                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+        int numThreads = Math.min(10, portEnd - portStart + 1); // Limit threads to avoid too many connections
+        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+        List<Future<String>> futures = new ArrayList<>();
 
-                out.println(command);
-                return in.readLine();
-            } catch (Exception e) {
-                System.out.println("Trying next port: " + (port + 1));
-            }
+        for (int port = portStart; port <= portEnd; port++) {
+            final int currentPort = port; // Needed because lambda expressions require final or effectively final variables
+            futures.add(executor.submit(() -> tryConnect(remoteBankCode, currentPort, command)));
         }
-        return "ER Nelze se připojit k bance " + bankCode + " na žádném dostupném portu.";
+
+        executor.shutdown(); // Prevents new tasks from being submitted
+
+        try {
+            for (Future<String> future : futures) {
+                String response = future.get(); // Wait for each task to complete
+                if (response != null) { // If a valid response is received, return it
+                    return response;
+                }
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        return "ER Sorry, we could not connect to the bank: " + bankCode + " on any defined port.";
+    }
+
+    /**
+     * Tries to establish a connection to the remote bank on a given port.
+     * @return the response from the remote bank, or null if the connection fails.
+     */
+    private String tryConnect(String remoteBankCode, int port, String command) {
+        try (Socket socket = new Socket(remoteBankCode, port);
+             PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
+             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+
+            out.println(command);
+            return in.readLine(); // Return the response
+        } catch (IOException e) {
+            return null; // If connection fails, return null
+        }
     }
 
     /**

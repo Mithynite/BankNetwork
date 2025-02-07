@@ -60,7 +60,7 @@ public class AccountCreateCommand implements Command {
             transactionService.createTransaction(new Transaction(
                     accountNumber, bankCode, TransactionType.create, new Date()));
         } catch (Exception e) {
-            writer.println("ER Bank nyní bohužel neumožňuje tvorbu nových účtů! Zkuste to znovu později.");
+            writer.println("ER Our apologies, but the bank currently is not able to create no more accounts! Feel free to try again later.");
         }
     }
 

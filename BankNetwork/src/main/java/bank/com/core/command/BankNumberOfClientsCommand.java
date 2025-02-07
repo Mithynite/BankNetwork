@@ -23,7 +23,7 @@ public class BankNumberOfClientsCommand implements Command {
         try {
             writer.println("BN " + accountService.getAllAccounts().size());
         } catch (Exception e) {
-            writer.println("ER Chyba při získávání počtu klientů.");
+            writer.println("ER Error during account retrieval!");
         }
     }
 }

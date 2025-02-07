@@ -29,7 +29,7 @@ public class ListAllAccountsCommand implements Command {
                 writer.println(account);
             }
         } catch (Exception e) {
-            writer.println("ER Chyba při získávání účtů: " + e.getMessage());
+            writer.println("ER Listing all accounts failed!");
         }
     }
 }
